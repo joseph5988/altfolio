@@ -1,0 +1,28 @@
+# Node modules
+node_modules/
+altfolio/server/node_modules/
+altfolio/client/node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+altfolio/server/.env
+altfolio/client/.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build output
+dist/
+build/
+
+# Misc
+coverage/
+.env.*.local 
