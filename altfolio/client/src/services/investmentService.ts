@@ -59,5 +59,22 @@ export const investmentService = {
       simulationType
     });
     return response.data.data;
+  },
+
+  // Export investments as CSV
+  async exportInvestmentsCSV(filters?: any): Promise<Blob> {
+    const params = new URLSearchParams();
+    if (filters) {
+      Object.keys(filters).forEach(key => {
+        if (filters[key] !== undefined && filters[key] !== '') {
+          params.append(key, filters[key].toString());
+        }
+      });
+    }
+
+    const response = await axios.get(`${API_BASE_URL}/investments/export?${params.toString()}`, {
+      responseType: 'blob'
+    });
+    return response.data;
   }
 }; 

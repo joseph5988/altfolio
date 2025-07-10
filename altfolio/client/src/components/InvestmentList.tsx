@@ -57,6 +57,27 @@ const InvestmentList: React.FC = () => {
     handleFormClose();
   };
 
+  const handleExportCSV = async () => {
+    try {
+      setLoading(true);
+      const csvBlob = await investmentService.exportInvestmentsCSV(filters);
+      
+      // Create download link
+      const url = window.URL.createObjectURL(csvBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `investments_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to export CSV');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredInvestments = investments.filter(investment => {
     if (filters.assetType && investment.assetType !== filters.assetType) return false;
     if (filters.minRoi && investment.roi < filters.minRoi) return false;
@@ -98,9 +119,14 @@ const InvestmentList: React.FC = () => {
       <Card>
         <Card.Header className="d-flex justify-content-between align-items-center">
           <h4>Investments</h4>
-          <Button variant="primary" onClick={() => setShowForm(true)}>
-            Add Investment
-          </Button>
+          <div>
+            <Button variant="outline-success" className="me-2" onClick={handleExportCSV}>
+              Export CSV
+            </Button>
+            <Button variant="primary" onClick={() => setShowForm(true)}>
+              Add Investment
+            </Button>
+          </div>
         </Card.Header>
         <Card.Body>
           {error && (

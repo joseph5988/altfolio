@@ -6,6 +6,7 @@ import { investmentService } from '../services/investmentService';
 import { PortfolioSummary, AllocationByType } from '../types/investment';
 import InvestmentList from './InvestmentList';
 import PortfolioAnalytics from './PortfolioAnalytics';
+import Simulation from './Simulation';
 
 const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
@@ -14,7 +15,7 @@ const Dashboard: React.FC = () => {
   const [allocationByType, setAllocationByType] = useState<AllocationByType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'investments' | 'analytics'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'investments' | 'analytics' | 'simulation'>('overview');
 
   useEffect(() => {
     loadDashboardData();
@@ -113,9 +114,16 @@ const Dashboard: React.FC = () => {
             </Button>
             <Button
               variant={activeTab === 'analytics' ? 'primary' : 'outline-primary'}
+              className="me-2"
               onClick={() => setActiveTab('analytics')}
             >
               Analytics
+            </Button>
+            <Button
+              variant={activeTab === 'simulation' ? 'primary' : 'outline-primary'}
+              onClick={() => setActiveTab('simulation')}
+            >
+              Simulation
             </Button>
           </div>
         </Col>
@@ -274,6 +282,10 @@ const Dashboard: React.FC = () => {
 
       {activeTab === 'analytics' && (
         <PortfolioAnalytics />
+      )}
+
+      {activeTab === 'simulation' && (
+        <Simulation />
       )}
     </Container>
   );
