@@ -48,11 +48,11 @@ altfolio/
 ## Development Phases
 
 1. **Phase 1**: Project setup and basic structure ✅
-2. **Phase 2**: Backend API development (authentication routes now include rate limiting and input validation)
-3. **Phase 3**: Frontend authentication and basic UI
-4. **Phase 4**: Investment management features
-5. **Phase 5**: Dashboard and analytics
-6. **Phase 6**: Testing and optimization
+2. **Phase 2**: Backend API development (authentication routes now include rate limiting and input validation) ✅
+3. **Phase 3**: Frontend authentication and basic UI ✅
+4. **Phase 4**: Investment management features ✅
+5. **Phase 5**: Dashboard and analytics ✅
+6. **Phase 6**: Testing and optimization ✅
 
 ## Sample Users
 
