@@ -78,6 +78,79 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
+// Portfolio summary endpoint
+router.get('/portfolio/summary', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.role === 'admin' ? null : req.user._id;
+    const portfolioTotals = await Investment.getPortfolioTotals(userId);
+    const allocationByType = await Investment.getAllocationByType(userId);
+    res.json({
+      success: true,
+      data: {
+        summary: portfolioTotals,
+        allocation: allocationByType
+      }
+    });
+  } catch (error) {
+    console.error('Portfolio summary error:', error);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
+// CSV Export endpoint
+router.get('/export', authenticateToken, async (req, res) => {
+  try {
+    console.log('Export endpoint called');
+    const investments = await Investment.find({ isActive: true })
+      .populate('owners', 'name email')
+      .sort({ createdAt: -1 })
+      .exec();
+    console.log('Found investments:', investments.length);
+    // Generate CSV content
+    const csvHeaders = [
+      'Asset Name',
+      'Asset Type',
+      'Invested Amount ($)',
+      'Current Value ($)',
+      'ROI (%)',
+      'Gain/Loss ($)',
+      'Investment Date',
+      'Owners',
+      'Description',
+      'Notes',
+      'Status'
+    ];
+    const csvRows = investments.map(investment => {
+      const roi = ((investment.currentValue - investment.investedAmount) / investment.investedAmount) * 100;
+      const gain = investment.currentValue - investment.investedAmount;
+      return [
+        investment.assetName,
+        investment.assetType,
+        investment.investedAmount.toFixed(2),
+        investment.currentValue.toFixed(2),
+        roi.toFixed(2),
+        gain.toFixed(2),
+        new Date(investment.investmentDate).toLocaleDateString(),
+        investment.owners.map(owner => owner.name).join(', '),
+        investment.description || '',
+        investment.notes || '',
+        investment.isActive ? 'Active' : 'Inactive'
+      ];
+    });
+    const csvContent = [csvHeaders, ...csvRows]
+      .map(row => row.map(field => `"${field}"`).join(','))
+      .join('\n');
+    console.log('CSV content generated, length:', csvContent.length);
+    // Set headers for CSV download
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="investments_${new Date().toISOString().split('T')[0]}.csv"`);
+    res.send(csvContent);
+  } catch (error) {
+    console.error('Error exporting investments:', error);
+    res.status(500).json({ error: 'Failed to export investments' });
+  }
+});
+
 // @route   GET /api/investments/:id
 // @desc    Get specific investment by ID
 // @access  Private
@@ -260,104 +333,6 @@ router.delete('/:id', authenticateToken, canAccessInvestment, async (req, res) =
     res.status(500).json({
       error: 'Internal server error.'
     });
-  }
-});
-
-// @route   GET /api/investments/portfolio/summary
-// @desc    Get portfolio summary with totals and analytics
-// @access  Private
-router.get('/portfolio/summary', authenticateToken, async (req, res) => {
-  try {
-    const userId = req.user.role === 'admin' ? null : req.user._id;
-    
-    const portfolioTotals = await Investment.getPortfolioTotals(userId);
-    const allocationByType = await Investment.getAllocationByType(userId);
-
-    res.json({
-      success: true,
-      data: {
-        summary: portfolioTotals,
-        allocation: allocationByType
-      }
-    });
-  } catch (error) {
-    console.error('Portfolio summary error:', error);
-    res.status(500).json({
-      error: 'Internal server error.'
-    });
-  }
-});
-
-// CSV Export endpoint
-router.get('/export', authenticateToken, async (req, res) => {
-  try {
-    const { assetType, minRoi, maxRoi, minAmount, maxAmount, dateFrom, dateTo } = req.query;
-    
-    const filter = { isActive: true };
-    
-    if (assetType) filter.assetType = assetType;
-    if (minRoi !== undefined) filter.roi = { $gte: parseFloat(minRoi) };
-    if (maxRoi !== undefined) {
-      if (filter.roi) filter.roi.$lte = parseFloat(maxRoi);
-      else filter.roi = { $lte: parseFloat(maxRoi) };
-    }
-    if (minAmount !== undefined) filter.investedAmount = { $gte: parseFloat(minAmount) };
-    if (maxAmount !== undefined) {
-      if (filter.investedAmount) filter.investedAmount.$lte = parseFloat(maxAmount);
-      else filter.investedAmount = { $lte: parseFloat(maxAmount) };
-    }
-    if (dateFrom || dateTo) {
-      filter.investmentDate = {};
-      if (dateFrom) filter.investmentDate.$gte = new Date(dateFrom);
-      if (dateTo) filter.investmentDate.$lte = new Date(dateTo);
-    }
-
-    const investments = await Investment.find(filter)
-      .populate('owners', 'name email')
-      .sort({ createdAt: -1 })
-      .exec();
-
-    // Generate CSV content
-    const csvHeaders = [
-      'Asset Name',
-      'Asset Type',
-      'Invested Amount ($)',
-      'Current Value ($)',
-      'ROI (%)',
-      'Gain/Loss ($)',
-      'Investment Date',
-      'Owners',
-      'Description',
-      'Notes',
-      'Status'
-    ];
-
-    const csvRows = investments.map(investment => [
-      investment.assetName,
-      investment.assetType,
-      investment.investedAmount.toFixed(2),
-      investment.currentValue.toFixed(2),
-      investment.roi.toFixed(2),
-      investment.absoluteGain.toFixed(2),
-      new Date(investment.investmentDate).toLocaleDateString(),
-      investment.owners.map(owner => owner.name).join(', '),
-      investment.description || '',
-      investment.notes || '',
-      investment.isActive ? 'Active' : 'Inactive'
-    ]);
-
-    const csvContent = [csvHeaders, ...csvRows]
-      .map(row => row.map(field => `"${field}"`).join(','))
-      .join('\n');
-
-    // Set headers for CSV download
-    res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', `attachment; filename="investments_${new Date().toISOString().split('T')[0]}.csv"`);
-    
-    res.send(csvContent);
-  } catch (error) {
-    console.error('Error exporting investments:', error);
-    res.status(500).json({ error: 'Failed to export investments' });
   }
 });
 
