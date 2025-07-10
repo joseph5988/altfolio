@@ -15,7 +15,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
   show,
   onHide,
   onSubmit,
-  investment
+  investment,
 }) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -28,7 +28,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
     investmentDate: new Date().toISOString().split('T')[0],
     owners: [user?._id || ''],
     description: '',
-    notes: ''
+    notes: '',
   });
 
   useEffect(() => {
@@ -41,7 +41,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
         investmentDate: investment.investmentDate.split('T')[0],
         owners: investment.owners.map(owner => owner._id),
         description: investment.description || '',
-        notes: investment.notes || ''
+        notes: investment.notes || '',
       });
     } else {
       setFormData({
@@ -52,7 +52,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
         investmentDate: new Date().toISOString().split('T')[0],
         owners: [user?._id || ''],
         description: '',
-        notes: ''
+        notes: '',
       });
     }
     setError(null);
@@ -64,9 +64,10 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
     setError(null);
 
     try {
-      // Validate investment amount for non-admin users
       if (user?.role !== 'admin' && formData.investedAmount > 1000000) {
-        throw new Error('Investment amount cannot exceed $1,000,000 for non-admin users.');
+        throw new Error(
+          'Investment amount cannot exceed $1,000,000 for non-admin users.'
+        );
       }
 
       if (investment) {
@@ -77,7 +78,9 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
 
       onSubmit();
     } catch (err: any) {
-      setError(err.response?.data?.error || err.message || 'Failed to save investment');
+      setError(
+        err.response?.data?.error || err.message || 'Failed to save investment'
+      );
     } finally {
       setLoading(false);
     }
@@ -86,7 +89,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
   const handleInputChange = (field: keyof CreateInvestmentData, value: any) => {
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -99,7 +102,11 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
 
   const calculateRoi = () => {
     if (formData.investedAmount === 0) return 0;
-    return ((formData.currentValue - formData.investedAmount) / formData.investedAmount) * 100;
+    return (
+      ((formData.currentValue - formData.investedAmount) /
+        formData.investedAmount) *
+      100
+    );
   };
 
   const calculateGain = () => {
@@ -107,7 +114,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
   };
 
   return (
-    <Modal show={show} onHide={onHide} size="lg">
+    <Modal show={show} onHide={onHide} size='lg'>
       <Modal.Header closeButton>
         <Modal.Title>
           {investment ? 'Edit Investment' : 'Add New Investment'}
@@ -115,7 +122,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
       </Modal.Header>
       <Modal.Body>
         {error && (
-          <Alert variant="danger" onClose={() => setError(null)} dismissible>
+          <Alert variant='danger' onClose={() => setError(null)} dismissible>
             {error}
           </Alert>
         )}
@@ -123,30 +130,30 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
         <Form onSubmit={handleSubmit}>
           <Row>
             <Col md={6}>
-              <Form.Group className="mb-3">
+              <Form.Group className='mb-3'>
                 <Form.Label>Asset Name *</Form.Label>
                 <Form.Control
-                  type="text"
+                  type='text'
                   value={formData.assetName}
-                  onChange={(e) => handleInputChange('assetName', e.target.value)}
+                  onChange={e => handleInputChange('assetName', e.target.value)}
                   required
                   maxLength={100}
                 />
               </Form.Group>
             </Col>
             <Col md={6}>
-              <Form.Group className="mb-3">
+              <Form.Group className='mb-3'>
                 <Form.Label>Asset Type *</Form.Label>
                 <Form.Select
                   value={formData.assetType}
-                  onChange={(e) => handleInputChange('assetType', e.target.value)}
+                  onChange={e => handleInputChange('assetType', e.target.value)}
                   required
                 >
-                  <option value="Startup">Startup</option>
-                  <option value="Crypto Fund">Crypto Fund</option>
-                  <option value="Farmland">Farmland</option>
-                  <option value="Collectible">Collectible</option>
-                  <option value="Other">Other</option>
+                  <option value='Startup'>Startup</option>
+                  <option value='Crypto Fund'>Crypto Fund</option>
+                  <option value='Farmland'>Farmland</option>
+                  <option value='Collectible'>Collectible</option>
+                  <option value='Other'>Other</option>
                 </Form.Select>
               </Form.Group>
             </Col>
@@ -154,31 +161,35 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
 
           <Row>
             <Col md={6}>
-              <Form.Group className="mb-3">
+              <Form.Group className='mb-3'>
                 <Form.Label>Invested Amount *</Form.Label>
                 <Form.Control
-                  type="number"
+                  type='number'
                   value={formData.investedAmount}
-                  onChange={(e) => handleInputChange('investedAmount', Number(e.target.value))}
+                  onChange={e =>
+                    handleInputChange('investedAmount', Number(e.target.value))
+                  }
                   required
                   min={0}
                   max={1000000000}
                   step={0.01}
                 />
                 {user?.role !== 'admin' && (
-                  <Form.Text className="text-muted">
+                  <Form.Text className='text-muted'>
                     Maximum: $1,000,000 for non-admin users
                   </Form.Text>
                 )}
               </Form.Group>
             </Col>
             <Col md={6}>
-              <Form.Group className="mb-3">
+              <Form.Group className='mb-3'>
                 <Form.Label>Current Value *</Form.Label>
                 <Form.Control
-                  type="number"
+                  type='number'
                   value={formData.currentValue}
-                  onChange={(e) => handleInputChange('currentValue', Number(e.target.value))}
+                  onChange={e =>
+                    handleInputChange('currentValue', Number(e.target.value))
+                  }
                   required
                   min={0}
                   max={1000000000}
@@ -190,71 +201,75 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
 
           <Row>
             <Col md={6}>
-              <Form.Group className="mb-3">
+              <Form.Group className='mb-3'>
                 <Form.Label>Investment Date</Form.Label>
                 <Form.Control
-                  type="date"
+                  type='date'
                   value={formData.investmentDate}
-                  onChange={(e) => handleInputChange('investmentDate', e.target.value)}
+                  onChange={e =>
+                    handleInputChange('investmentDate', e.target.value)
+                  }
                 />
               </Form.Group>
             </Col>
             <Col md={6}>
-              <Form.Group className="mb-3">
+              <Form.Group className='mb-3'>
                 <Form.Label>ROI Preview</Form.Label>
                 <Form.Control
-                  type="text"
+                  type='text'
                   value={`${calculateRoi().toFixed(2)}% (${formatCurrency(calculateGain())})`}
                   readOnly
-                  className={calculateGain() >= 0 ? 'text-success' : 'text-danger'}
+                  className={
+                    calculateGain() >= 0 ? 'text-success' : 'text-danger'
+                  }
                 />
               </Form.Group>
             </Col>
           </Row>
 
-          <Form.Group className="mb-3">
+          <Form.Group className='mb-3'>
             <Form.Label>Description</Form.Label>
             <Form.Control
-              as="textarea"
+              as='textarea'
               rows={2}
               value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
+              onChange={e => handleInputChange('description', e.target.value)}
               maxLength={500}
             />
-            <Form.Text className="text-muted">
+            <Form.Text className='text-muted'>
               {formData.description?.length || 0}/500 characters
             </Form.Text>
           </Form.Group>
 
-          <Form.Group className="mb-3">
+          <Form.Group className='mb-3'>
             <Form.Label>Notes</Form.Label>
             <Form.Control
-              as="textarea"
+              as='textarea'
               rows={3}
               value={formData.notes}
-              onChange={(e) => handleInputChange('notes', e.target.value)}
+              onChange={e => handleInputChange('notes', e.target.value)}
               maxLength={1000}
             />
-            <Form.Text className="text-muted">
+            <Form.Text className='text-muted'>
               {formData.notes?.length || 0}/1000 characters
             </Form.Text>
           </Form.Group>
         </Form>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={onHide}>
+        <Button variant='secondary' onClick={onHide}>
           Cancel
         </Button>
-        <Button 
-          variant="primary" 
-          onClick={handleSubmit}
-          disabled={loading}
-        >
-          {loading ? 'Saving...' : (investment ? 'Update Investment' : 'Create Investment')}
+        <Button variant='primary' onClick={handleSubmit} disabled={loading}>
+          {loading
+            ? 'Saving...'
+            : investment
+              ? 'Update Investment'
+              : 'Create Investment'}
         </Button>
       </Modal.Footer>
     </Modal>
   );
 };
 
-export default InvestmentForm; 
+export default InvestmentForm;

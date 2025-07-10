@@ -53,28 +53,23 @@ const investmentSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes for better query performance
 investmentSchema.index({ assetType: 1 });
 investmentSchema.index({ investmentDate: -1 });
 investmentSchema.index({ owners: 1 });
 investmentSchema.index({ isActive: 1 });
 
-// Virtual for ROI calculation
 investmentSchema.virtual('roi').get(function() {
   if (this.investedAmount === 0) return 0;
   return ((this.currentValue - this.investedAmount) / this.investedAmount) * 100;
 });
 
-// Virtual for absolute gain/loss
 investmentSchema.virtual('absoluteGain').get(function() {
   return this.currentValue - this.investedAmount;
 });
 
-// Ensure virtual fields are serialized
 investmentSchema.set('toJSON', { virtuals: true });
 investmentSchema.set('toObject', { virtuals: true });
 
-// Static method to calculate portfolio totals
 investmentSchema.statics.getPortfolioTotals = async function(userId = null) {
   const matchStage = { isActive: true };
   if (userId) {
@@ -112,7 +107,6 @@ investmentSchema.statics.getPortfolioTotals = async function(userId = null) {
   return totals;
 };
 
-// Static method to get allocation by asset type
 investmentSchema.statics.getAllocationByType = async function(userId = null) {
   const matchStage = { isActive: true };
   if (userId) {
@@ -133,7 +127,6 @@ investmentSchema.statics.getAllocationByType = async function(userId = null) {
   ]);
 };
 
-// Instance method to check if user can modify this investment
 investmentSchema.methods.canUserModify = function(userId, userRole) {
   if (userRole === 'admin') return true;
   return this.owners.includes(userId);

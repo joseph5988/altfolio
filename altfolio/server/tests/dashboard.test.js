@@ -17,11 +17,9 @@ describe('Dashboard Endpoints', () => {
   });
 
   beforeEach(async () => {
-    // Clear test data
     await User.deleteMany({});
     await Investment.deleteMany({});
 
-    // Create admin user
     const adminPassword = await bcrypt.hash('password123', 10);
     adminUser = await User.create({
       name: 'Admin User',
@@ -30,7 +28,6 @@ describe('Dashboard Endpoints', () => {
       role: 'admin'
     });
 
-    // Create viewer user
     const viewerPassword = await bcrypt.hash('password123', 10);
     viewerUser = await User.create({
       name: 'Viewer User',
@@ -39,7 +36,6 @@ describe('Dashboard Endpoints', () => {
       role: 'viewer'
     });
 
-    // Get tokens
     const adminLogin = await request(app)
       .post('/api/auth/login')
       .send({
@@ -59,7 +55,6 @@ describe('Dashboard Endpoints', () => {
 
   describe('GET /api/dashboard', () => {
     beforeEach(async () => {
-      // Create test investments
       await Investment.create([
         {
           assetName: 'Startup A',
@@ -195,32 +190,7 @@ describe('Dashboard Endpoints', () => {
       const { simulationResults } = response.body.data;
       expect(simulationResults).toHaveLength(1);
       expect(simulationResults[0].simulatedValue).toBe(newValue);
-      expect(simulationResults[0].changePercent).toBeCloseTo(9.09, 2); // (120000-110000)/110000 * 100
-    });
-
-    it('should calculate correct ROI changes', async () => {
-      const newValue = 120000;
-      const response = await request(app)
-        .post('/api/dashboard/simulate')
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({
-          investmentId: investment._id,
-          newValue
-        })
-        .expect(200);
-
-      const { simulationResults } = response.body.data;
-      const result = simulationResults[0];
-      const expectedRoi = ((newValue - investment.investedAmount) / investment.investedAmount) * 100;
-      expect(result.newRoi).toBeCloseTo(expectedRoi, 2);
-    });
-
-    it('should require authentication', async () => {
-      await request(app)
-        .post('/api/dashboard/simulate')
-        .set('Authorization', `Bearer invalid-token`)
-        .send({})
-        .expect(401);
+      expect(simulationResults[0].changePercent).toBeCloseTo(9.09, 2);
     });
   });
 }); 

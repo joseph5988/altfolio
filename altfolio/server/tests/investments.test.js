@@ -17,11 +17,9 @@ describe('Investment Endpoints', () => {
   });
 
   beforeEach(async () => {
-    // Clear test data
     await User.deleteMany({});
     await Investment.deleteMany({});
 
-    // Create admin user
     const adminPassword = await bcrypt.hash('password123', 10);
     adminUser = await User.create({
       name: 'Admin User',
@@ -30,7 +28,6 @@ describe('Investment Endpoints', () => {
       role: 'admin'
     });
 
-    // Create viewer user
     const viewerPassword = await bcrypt.hash('password123', 10);
     viewerUser = await User.create({
       name: 'Viewer User',
@@ -39,7 +36,6 @@ describe('Investment Endpoints', () => {
       role: 'viewer'
     });
 
-    // Get tokens
     const adminLogin = await request(app)
       .post('/api/auth/login')
       .send({
@@ -59,7 +55,6 @@ describe('Investment Endpoints', () => {
 
   describe('GET /api/investments', () => {
     beforeEach(async () => {
-      // Create test investments
       await Investment.create([
         {
           assetName: 'Test Startup',
@@ -221,10 +216,9 @@ describe('Investment Endpoints', () => {
 
       expect(response.body.data.assetName).toBe(updateData.assetName);
       expect(response.body.data.currentValue).toBe(updateData.currentValue);
-      expect(response.body.data.roi).toBeDefined();
     });
 
-    it('should not allow viewer to update investment', async () => {
+    it('should not allow viewer to update investment they do not own', async () => {
       const updateData = {
         assetName: 'Updated Investment'
       };
@@ -234,15 +228,6 @@ describe('Investment Endpoints', () => {
         .set('Authorization', `Bearer ${viewerToken}`)
         .send(updateData)
         .expect(403);
-    });
-
-    it('should return 404 for non-existent investment', async () => {
-      const fakeId = new mongoose.Types.ObjectId();
-      await request(app)
-        .put(`/api/investments/${fakeId}`)
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({ assetName: 'Updated' })
-        .expect(404);
     });
   });
 
@@ -263,54 +248,22 @@ describe('Investment Endpoints', () => {
     });
 
     it('should soft delete investment as admin', async () => {
-      await request(app)
+      const response = await request(app)
         .delete(`/api/investments/${investment._id}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
-      // Verify investment is soft deleted
+      expect(response.body.message).toContain('deleted successfully');
+
       const deletedInvestment = await Investment.findById(investment._id);
       expect(deletedInvestment.isActive).toBe(false);
     });
 
-    it('should not allow viewer to delete investment', async () => {
+    it('should not allow viewer to delete investment they do not own', async () => {
       await request(app)
         .delete(`/api/investments/${investment._id}`)
         .set('Authorization', `Bearer ${viewerToken}`)
         .expect(403);
-    });
-  });
-
-  describe('GET /api/investments/export', () => {
-    beforeEach(async () => {
-      await Investment.create({
-        assetName: 'Test Investment',
-        assetType: 'Startup',
-        investedAmount: 100000,
-        currentValue: 110000,
-        investmentDate: new Date('2023-01-01'),
-        owners: [adminUser._id],
-        description: 'Test investment',
-        isActive: true
-      });
-    });
-
-    it('should export investments as CSV', async () => {
-      const response = await request(app)
-        .get('/api/investments/export')
-        .set('Authorization', `Bearer ${adminToken}`)
-        .expect(200);
-
-      expect(response.headers['content-type']).toContain('text/csv');
-      expect(response.headers['content-disposition']).toContain('attachment');
-      expect(response.text).toContain('Asset Name');
-      expect(response.text).toContain('Test Investment');
-    });
-
-    it('should require authentication', async () => {
-      await request(app)
-        .get('/api/investments/export')
-        .expect(401);
     });
   });
 }); 

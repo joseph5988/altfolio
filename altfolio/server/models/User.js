@@ -38,11 +38,9 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for better query performance
 userSchema.index({ email: 1 });
 userSchema.index({ role: 1 });
 
-// Hash password before saving
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
   
@@ -55,19 +53,16 @@ userSchema.pre('save', async function(next) {
   }
 });
 
-// Method to compare password
 userSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// Method to get public profile (without password)
 userSchema.methods.toPublicJSON = function() {
   const user = this.toObject();
   delete user.password;
   return user;
 };
 
-// Static method to create default users
 userSchema.statics.createDefaultUsers = async function() {
   const defaultUsers = [
     {

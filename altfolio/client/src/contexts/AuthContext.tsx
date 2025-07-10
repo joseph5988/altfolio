@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from 'react';
 import axios from 'axios';
 
 interface User {
@@ -36,11 +42,12 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [token, setToken] = useState<string | null>(
+    localStorage.getItem('token')
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Set up axios defaults
   useEffect(() => {
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -49,7 +56,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [token]);
 
-  // Check if user is authenticated on app load
   useEffect(() => {
     const checkAuth = async () => {
       if (token) {
@@ -72,22 +78,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
       setError(null);
-      
-      const response = await axios.post('http://localhost:5002/api/auth/login', {
-        email,
-        password
-      });
+
+      const response = await axios.post(
+        'http://localhost:5002/api/auth/login',
+        {
+          email,
+          password,
+        }
+      );
 
       const { token: newToken, user: userData } = response.data;
-      
-      // Set token in state and localStorage
+
       setToken(newToken);
       setUser(userData);
       localStorage.setItem('token', newToken);
-      
-      // Immediately set axios header
+
       axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-      
     } catch (error: any) {
       const errorMessage = error.response?.data?.error || 'Login failed';
       setError(errorMessage);
@@ -115,12 +121,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     isLoading,
     error,
-    clearError
+    clearError,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
-}; 
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};

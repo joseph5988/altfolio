@@ -1,11 +1,10 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// Middleware to verify JWT token
 const authenticateToken = async (req, res, next) => {
   try {
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+    const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) {
       return res.status(401).json({ 
@@ -36,7 +35,6 @@ const authenticateToken = async (req, res, next) => {
   }
 };
 
-// Middleware to check if user is admin
 const requireAdmin = (req, res, next) => {
   if (req.user.role !== 'admin') {
     return res.status(403).json({ 
@@ -46,7 +44,6 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
-// Middleware to check if user can access investment
 const canAccessInvestment = async (req, res, next) => {
   try {
     const investmentId = req.params.id;
@@ -57,13 +54,11 @@ const canAccessInvestment = async (req, res, next) => {
       return res.status(404).json({ error: 'Investment not found.' });
     }
 
-    // Admin can access all investments
     if (req.user.role === 'admin') {
       req.investment = investment;
       return next();
     }
 
-    // Check if user is an owner of the investment
     if (!investment.owners.includes(req.user._id)) {
       return res.status(403).json({ 
         error: 'Access denied. You do not own this investment.' 
@@ -78,7 +73,6 @@ const canAccessInvestment = async (req, res, next) => {
   }
 };
 
-// Middleware to validate investment amount for non-admin users
 const validateInvestmentAmount = (req, res, next) => {
   const { investedAmount } = req.body;
   const userRole = req.user.role;
