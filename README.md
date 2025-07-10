@@ -5,6 +5,7 @@ A full-stack MERN application for tracking alternative investments including sta
 ## Features
 
 - **Authentication**: JWT-based login with admin and viewer roles
+- **Security**: Rate limiting and input validation on authentication routes to prevent abuse and ensure data quality
 - **Investment Management**: Add, edit, delete investments with shared ownership
 - **Dashboard**: Real-time portfolio analytics with charts and filters
 - **Business Logic**: Investment limits, ROI calculations, and role-based permissions
@@ -24,6 +25,7 @@ altfolio/
 - **Backend**: Express.js, MongoDB, Mongoose
 - **Authentication**: JWT
 - **Testing**: Jest
+- **Security**: express-rate-limit, express-validator
 
 ## Setup Instructions
 
@@ -46,7 +48,7 @@ altfolio/
 ## Development Phases
 
 1. **Phase 1**: Project setup and basic structure ✅
-2. **Phase 2**: Backend API development
+2. **Phase 2**: Backend API development (authentication routes now include rate limiting and input validation)
 3. **Phase 3**: Frontend authentication and basic UI
 4. **Phase 4**: Investment management features
 5. **Phase 5**: Dashboard and analytics
@@ -59,7 +61,7 @@ altfolio/
 
 ## API Endpoints
 
-- `POST /api/auth/login` - User authentication
+- `POST /api/auth/login` - User authentication (rate limited, input validated)
 - `GET /api/investments` - Get all investments
 - `POST /api/investments` - Create new investment
 - `PUT /api/investments/:id` - Update investment
