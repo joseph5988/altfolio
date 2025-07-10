@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Investment, CreateInvestmentData, UpdateInvestmentData, PortfolioSummary, AllocationByType } from '../types/investment';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'http://localhost:5002/api';
 
 export const investmentService = {
   // Get all investments

@@ -54,7 +54,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const checkAuth = async () => {
       if (token) {
         try {
-          const response = await axios.get('http://localhost:5000/api/auth/me');
+          const response = await axios.get('http://localhost:5002/api/auth/me');
           setUser(response.data.user);
         } catch (error) {
           console.error('Auth check failed:', error);
@@ -73,16 +73,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
       setError(null);
       
-      const response = await axios.post('http://localhost:5000/api/auth/login', {
+      const response = await axios.post('http://localhost:5002/api/auth/login', {
         email,
         password
       });
 
       const { token: newToken, user: userData } = response.data;
       
+      // Set token in state and localStorage
       setToken(newToken);
       setUser(userData);
       localStorage.setItem('token', newToken);
+      
+      // Immediately set axios header
+      axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
       
     } catch (error: any) {
       const errorMessage = error.response?.data?.error || 'Login failed';
