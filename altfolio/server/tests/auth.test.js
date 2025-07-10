@@ -6,7 +6,6 @@ const bcrypt = require('bcryptjs');
 
 describe('Authentication Endpoints', () => {
   beforeAll(async () => {
-    // Connect to test database
     await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/altfolio_test');
   });
 
@@ -15,7 +14,6 @@ describe('Authentication Endpoints', () => {
   });
 
   beforeEach(async () => {
-    // Clear test data
     await User.deleteMany({});
   });
 
@@ -43,7 +41,6 @@ describe('Authentication Endpoints', () => {
     });
 
     it('should not register user with existing email', async () => {
-      // Create first user
       await User.create({
         name: 'Existing User',
         email: 'test@example.com',
@@ -86,7 +83,6 @@ describe('Authentication Endpoints', () => {
 
   describe('POST /api/auth/login', () => {
     beforeEach(async () => {
-      // Create test user
       const hashedPassword = await bcrypt.hash('password123', 10);
       await User.create({
         name: 'Test User',
@@ -149,7 +145,6 @@ describe('Authentication Endpoints', () => {
     let user;
 
     beforeEach(async () => {
-      // Create test user and get token
       const hashedPassword = await bcrypt.hash('password123', 10);
       user = await User.create({
         name: 'Test User',

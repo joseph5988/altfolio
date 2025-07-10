@@ -3,7 +3,6 @@ const router = express.Router();
 const Investment = require('../models/Investment');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
-// Get dashboard analytics
 router.get('/', authenticateToken, async (req, res) => {
   try {
     const investments = await Investment.find({ isActive: true }).populate('owners', 'name email');
@@ -26,7 +25,6 @@ router.get('/', authenticateToken, async (req, res) => {
       summary.totalRoi = (summary.totalGain / summary.totalInvested) * 100;
     }
 
-    // Calculate allocation by asset type
     const allocation = {};
     investments.forEach(investment => {
       if (!allocation[investment.assetType]) {
@@ -59,7 +57,6 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
-// Simulation endpoint - randomly update investment values by ±5%
 router.post('/simulate', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { investmentId, newValue, simulationType } = req.body;
@@ -67,10 +64,8 @@ router.post('/simulate', authenticateToken, requireAdmin, async (req, res) => {
     let investments;
     
     if (investmentId) {
-      // Simulate specific investment
       investments = await Investment.find({ _id: investmentId, isActive: true });
     } else {
-      // Simulate all investments
       investments = await Investment.find({ isActive: true });
     }
 
@@ -80,15 +75,12 @@ router.post('/simulate', authenticateToken, requireAdmin, async (req, res) => {
       let simulatedValue;
       
       if (newValue && investmentId === investment._id) {
-        // Use provided new value for specific investment
         simulatedValue = newValue;
       } else {
-        // Generate random ±5% change
-        const changePercent = (Math.random() - 0.5) * 0.1; // ±5%
+        const changePercent = (Math.random() - 0.5) * 0.1;
         simulatedValue = investment.currentValue * (1 + changePercent);
       }
 
-      // Calculate new ROI and gain
       const newRoi = ((simulatedValue - investment.investedAmount) / investment.investedAmount) * 100;
       const newGain = simulatedValue - investment.investedAmount;
 
@@ -103,7 +95,6 @@ router.post('/simulate', authenticateToken, requireAdmin, async (req, res) => {
       });
     }
 
-    // Calculate portfolio impact
     const totalOriginalValue = investments.reduce((sum, inv) => sum + inv.currentValue, 0);
     const totalSimulatedValue = simulationResults.reduce((sum, result) => sum + result.simulatedValue, 0);
     const portfolioChangePercent = ((totalSimulatedValue - totalOriginalValue) / totalOriginalValue) * 100;

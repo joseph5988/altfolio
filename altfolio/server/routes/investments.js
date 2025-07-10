@@ -3,18 +3,9 @@ const { body, validationResult } = require('express-validator');
 const Investment = require('../models/Investment');
 const User = require('../models/User');
 const { authenticateToken, canAccessInvestment, validateInvestmentAmount, requireAdmin } = require('../middleware/auth');
-const rateLimit = require('express-rate-limit');
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
-});
 
 const router = express.Router();
-router.use(limiter);
 
-// Validation rules for investment creation/update
 const investmentValidation = [
   body('assetName')
     .trim()
@@ -49,14 +40,10 @@ const investmentValidation = [
     .withMessage('Each owner must be a valid user ID')
 ];
 
-// @route   GET /api/investments
-// @desc    Get all investments (filtered by user role)
-// @access  Private
 router.get('/', authenticateToken, async (req, res) => {
   try {
     let query = { isActive: true };
     
-    // Non-admin users can only see their own investments
     if (req.user.role !== 'admin') {
       query.owners = req.user._id;
     }
@@ -78,7 +65,6 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
-// Portfolio summary endpoint
 router.get('/portfolio/summary', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.role === 'admin' ? null : req.user._id;
@@ -97,7 +83,6 @@ router.get('/portfolio/summary', authenticateToken, async (req, res) => {
   }
 });
 
-// CSV Export endpoint
 router.get('/export', authenticateToken, async (req, res) => {
   try {
     console.log('Export endpoint called');
@@ -106,7 +91,6 @@ router.get('/export', authenticateToken, async (req, res) => {
       .sort({ createdAt: -1 })
       .exec();
     console.log('Found investments:', investments.length);
-    // Generate CSV content
     const csvHeaders = [
       'Asset Name',
       'Asset Type',
@@ -141,7 +125,6 @@ router.get('/export', authenticateToken, async (req, res) => {
       .map(row => row.map(field => `"${field}"`).join(','))
       .join('\n');
     console.log('CSV content generated, length:', csvContent.length);
-    // Set headers for CSV download
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', `attachment; filename="investments_${new Date().toISOString().split('T')[0]}.csv"`);
     res.send(csvContent);
@@ -151,9 +134,6 @@ router.get('/export', authenticateToken, async (req, res) => {
   }
 });
 
-// @route   GET /api/investments/:id
-// @desc    Get specific investment by ID
-// @access  Private
 router.get('/:id', authenticateToken, canAccessInvestment, async (req, res) => {
   try {
     const investment = await Investment.findById(req.params.id)
@@ -177,9 +157,6 @@ router.get('/:id', authenticateToken, canAccessInvestment, async (req, res) => {
   }
 });
 
-// @route   POST /api/investments
-// @desc    Create new investment
-// @access  Private
 router.post('/', 
   authenticateToken,
   validateInvestmentAmount,
@@ -196,7 +173,6 @@ router.post('/',
 
       const { assetName, assetType, investedAmount, currentValue, investmentDate, description, notes, owners } = req.body;
 
-      // Verify all owners exist and are active
       const ownerUsers = await User.find({ 
         _id: { $in: owners }, 
         isActive: true 
@@ -208,7 +184,6 @@ router.post('/',
         });
       }
 
-      // Check if non-admin user is trying to add someone else as owner
       if (req.user.role !== 'admin' && !owners.includes(req.user._id.toString())) {
         return res.status(403).json({
           error: 'You can only create investments where you are an owner.'
@@ -245,9 +220,6 @@ router.post('/',
   }
 );
 
-// @route   PUT /api/investments/:id
-// @desc    Update investment
-// @access  Private
 router.put('/:id',
   authenticateToken,
   canAccessInvestment,
@@ -265,7 +237,6 @@ router.put('/:id',
 
       const { assetName, assetType, investedAmount, currentValue, investmentDate, description, notes, owners } = req.body;
 
-      // Verify all owners exist and are active
       const ownerUsers = await User.find({ 
         _id: { $in: owners }, 
         isActive: true 
@@ -277,7 +248,6 @@ router.put('/:id',
         });
       }
 
-      // Check if non-admin user is trying to remove themselves as owner
       if (req.user.role !== 'admin' && !owners.includes(req.user._id.toString())) {
         return res.status(403).json({
           error: 'You cannot remove yourself as an owner of this investment.'
@@ -313,9 +283,6 @@ router.put('/:id',
   }
 );
 
-// @route   DELETE /api/investments/:id
-// @desc    Delete investment (soft delete)
-// @access  Private
 router.delete('/:id', authenticateToken, canAccessInvestment, async (req, res) => {
   try {
     const investment = await Investment.findByIdAndUpdate(

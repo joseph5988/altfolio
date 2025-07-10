@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Badge, Form, Row, Col, Card, Alert, Spinner } from 'react-bootstrap';
+import {
+  Table,
+  Button,
+  Badge,
+  Form,
+  Row,
+  Col,
+  Card,
+  Alert,
+  Spinner,
+} from 'react-bootstrap';
 import { Investment, InvestmentFilters } from '../types/investment';
 import { investmentService } from '../services/investmentService';
 import { useAuth } from '../contexts/AuthContext';
@@ -10,7 +20,9 @@ const InvestmentList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [editingInvestment, setEditingInvestment] = useState<Investment | null>(null);
+  const [editingInvestment, setEditingInvestment] = useState<Investment | null>(
+    null
+  );
   const [filters, setFilters] = useState<InvestmentFilters>({});
   const { user } = useAuth();
 
@@ -61,8 +73,7 @@ const InvestmentList: React.FC = () => {
     try {
       setLoading(true);
       const csvBlob = await investmentService.exportInvestmentsCSV(filters);
-      
-      // Create download link
+
       const url = window.URL.createObjectURL(csvBlob);
       const link = document.createElement('a');
       link.href = url;
@@ -79,11 +90,14 @@ const InvestmentList: React.FC = () => {
   };
 
   const filteredInvestments = investments.filter(investment => {
-    if (filters.assetType && investment.assetType !== filters.assetType) return false;
+    if (filters.assetType && investment.assetType !== filters.assetType)
+      return false;
     if (filters.minRoi && investment.roi < filters.minRoi) return false;
     if (filters.maxRoi && investment.roi > filters.maxRoi) return false;
-    if (filters.minAmount && investment.investedAmount < filters.minAmount) return false;
-    if (filters.maxAmount && investment.investedAmount > filters.maxAmount) return false;
+    if (filters.minAmount && investment.investedAmount < filters.minAmount)
+      return false;
+    if (filters.maxAmount && investment.investedAmount > filters.maxAmount)
+      return false;
     return true;
   });
 
@@ -106,9 +120,9 @@ const InvestmentList: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="text-center p-4">
-        <Spinner animation="border" role="status">
-          <span className="visually-hidden">Loading...</span>
+      <div className='text-center p-4'>
+        <Spinner animation='border' role='status'>
+          <span className='visually-hidden'>Loading...</span>
         </Spinner>
       </div>
     );
@@ -117,39 +131,48 @@ const InvestmentList: React.FC = () => {
   return (
     <div>
       <Card>
-        <Card.Header className="d-flex justify-content-between align-items-center">
+        <Card.Header className='d-flex justify-content-between align-items-center'>
           <h4>Investments</h4>
           <div>
-            <Button variant="outline-success" className="me-2" onClick={handleExportCSV}>
+            <Button
+              variant='outline-success'
+              className='me-2'
+              onClick={handleExportCSV}
+            >
               Export CSV
             </Button>
-            <Button variant="primary" onClick={() => setShowForm(true)}>
+            <Button variant='primary' onClick={() => setShowForm(true)}>
               Add Investment
             </Button>
           </div>
         </Card.Header>
         <Card.Body>
           {error && (
-            <Alert variant="danger" onClose={() => setError(null)} dismissible>
+            <Alert variant='danger' onClose={() => setError(null)} dismissible>
               {error}
             </Alert>
           )}
 
           {/* Filters */}
-          <Row className="mb-3">
+          <Row className='mb-3'>
             <Col md={3}>
               <Form.Group>
                 <Form.Label>Asset Type</Form.Label>
                 <Form.Select
                   value={filters.assetType || ''}
-                  onChange={(e) => setFilters({ ...filters, assetType: e.target.value || undefined })}
+                  onChange={e =>
+                    setFilters({
+                      ...filters,
+                      assetType: e.target.value || undefined,
+                    })
+                  }
                 >
-                  <option value="">All Types</option>
-                  <option value="Startup">Startup</option>
-                  <option value="Crypto Fund">Crypto Fund</option>
-                  <option value="Farmland">Farmland</option>
-                  <option value="Collectible">Collectible</option>
-                  <option value="Other">Other</option>
+                  <option value=''>All Types</option>
+                  <option value='Startup'>Startup</option>
+                  <option value='Crypto Fund'>Crypto Fund</option>
+                  <option value='Farmland'>Farmland</option>
+                  <option value='Collectible'>Collectible</option>
+                  <option value='Other'>Other</option>
                 </Form.Select>
               </Form.Group>
             </Col>
@@ -157,10 +180,17 @@ const InvestmentList: React.FC = () => {
               <Form.Group>
                 <Form.Label>Min ROI (%)</Form.Label>
                 <Form.Control
-                  type="number"
+                  type='number'
                   value={filters.minRoi || ''}
-                  onChange={(e) => setFilters({ ...filters, minRoi: e.target.value ? Number(e.target.value) : undefined })}
-                  placeholder="Min ROI"
+                  onChange={e =>
+                    setFilters({
+                      ...filters,
+                      minRoi: e.target.value
+                        ? Number(e.target.value)
+                        : undefined,
+                    })
+                  }
+                  placeholder='Min ROI'
                 />
               </Form.Group>
             </Col>
@@ -168,15 +198,25 @@ const InvestmentList: React.FC = () => {
               <Form.Group>
                 <Form.Label>Max ROI (%)</Form.Label>
                 <Form.Control
-                  type="number"
+                  type='number'
                   value={filters.maxRoi || ''}
-                  onChange={(e) => setFilters({ ...filters, maxRoi: e.target.value ? Number(e.target.value) : undefined })}
-                  placeholder="Max ROI"
+                  onChange={e =>
+                    setFilters({
+                      ...filters,
+                      maxRoi: e.target.value
+                        ? Number(e.target.value)
+                        : undefined,
+                    })
+                  }
+                  placeholder='Max ROI'
                 />
               </Form.Group>
             </Col>
             <Col md={3}>
-              <Button variant="outline-secondary" onClick={() => setFilters({})}>
+              <Button
+                variant='outline-secondary'
+                onClick={() => setFilters({})}
+              >
                 Clear Filters
               </Button>
             </Col>
@@ -197,11 +237,11 @@ const InvestmentList: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredInvestments.map((investment) => (
+              {filteredInvestments.map(investment => (
                 <tr key={investment._id}>
                   <td>{investment.assetName}</td>
                   <td>
-                    <Badge bg="info">{investment.assetType}</Badge>
+                    <Badge bg='info'>{investment.assetType}</Badge>
                   </td>
                   <td>{formatCurrency(investment.investedAmount)}</td>
                   <td>{formatCurrency(investment.currentValue)}</td>
@@ -210,7 +250,13 @@ const InvestmentList: React.FC = () => {
                       {formatPercentage(investment.roi)}
                     </Badge>
                   </td>
-                  <td className={investment.absoluteGain >= 0 ? 'text-success' : 'text-danger'}>
+                  <td
+                    className={
+                      investment.absoluteGain >= 0
+                        ? 'text-success'
+                        : 'text-danger'
+                    }
+                  >
                     {formatCurrency(investment.absoluteGain)}
                   </td>
                   <td>
@@ -218,16 +264,16 @@ const InvestmentList: React.FC = () => {
                   </td>
                   <td>
                     <Button
-                      variant="outline-primary"
-                      size="sm"
-                      className="me-2"
+                      variant='outline-primary'
+                      size='sm'
+                      className='me-2'
                       onClick={() => handleEdit(investment)}
                     >
                       Edit
                     </Button>
                     <Button
-                      variant="outline-danger"
-                      size="sm"
+                      variant='outline-danger'
+                      size='sm'
                       onClick={() => handleDelete(investment._id)}
                     >
                       Delete
@@ -239,8 +285,11 @@ const InvestmentList: React.FC = () => {
           </Table>
 
           {filteredInvestments.length === 0 && (
-            <Alert variant="info">
-              No investments found. {filters.assetType || filters.minRoi || filters.maxRoi ? 'Try adjusting your filters.' : 'Add your first investment!'}
+            <Alert variant='info'>
+              No investments found.{' '}
+              {filters.assetType || filters.minRoi || filters.maxRoi
+                ? 'Try adjusting your filters.'
+                : 'Add your first investment!'}
             </Alert>
           )}
         </Card.Body>
@@ -259,4 +308,4 @@ const InvestmentList: React.FC = () => {
   );
 };
 
-export default InvestmentList; 
+export default InvestmentList;

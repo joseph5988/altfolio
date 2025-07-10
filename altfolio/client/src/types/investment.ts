@@ -59,4 +59,4 @@ export interface InvestmentFilters {
   maxAmount?: number;
   dateFrom?: string;
   dateTo?: string;
-} 
+}

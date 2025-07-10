@@ -2,19 +2,10 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { authenticateToken } = require('../middleware/auth');
-const rateLimit = require('express-rate-limit');
 const { body, validationResult } = require('express-validator');
 
 const router = express.Router();
 
-// Rate limiter for login route
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // limit each IP to 5 login requests per windowMs
-  message: 'Too many login attempts from this IP, please try again after 15 minutes.'
-});
-
-// Generate JWT token
 const generateToken = (userId) => {
   return jwt.sign(
     { userId },
@@ -23,12 +14,8 @@ const generateToken = (userId) => {
   );
 };
 
-// @route   POST /api/auth/login
-// @desc    Authenticate user & get token
-// @access  Public
 router.post(
   '/login',
-  loginLimiter,
   [
     body('email').isEmail().withMessage('A valid email is required.'),
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters.')
@@ -40,7 +27,6 @@ router.post(
     }
     try {
       const { email, password } = req.body;
-      // Find user by email
       const user = await User.findOne({ email: email.toLowerCase() });
       if (!user) {
         return res.status(401).json({ error: 'Invalid credentials.' });
@@ -63,9 +49,6 @@ router.post(
   }
 );
 
-// @route   GET /api/auth/me
-// @desc    Get current user profile
-// @access  Private
 router.get('/me', authenticateToken, async (req, res) => {
   try {
     res.json({ user: req.user.toPublicJSON() });
@@ -75,9 +58,6 @@ router.get('/me', authenticateToken, async (req, res) => {
   }
 });
 
-// @route   POST /api/auth/refresh
-// @desc    Refresh JWT token
-// @access  Private
 router.post('/refresh', authenticateToken, async (req, res) => {
   try {
     const token = generateToken(req.user._id);
@@ -88,9 +68,6 @@ router.post('/refresh', authenticateToken, async (req, res) => {
   }
 });
 
-// @route   POST /api/auth/logout
-// @desc    Logout user (client-side token removal)
-// @access  Private
 router.post('/logout', authenticateToken, async (req, res) => {
   try {
     res.json({ message: 'Logout successful' });
@@ -100,9 +77,6 @@ router.post('/logout', authenticateToken, async (req, res) => {
   }
 });
 
-// @route   POST /api/auth/init
-// @desc    Initialize default users (development only)
-// @access  Public
 router.post('/init', async (req, res) => {
   try {
     if (process.env.NODE_ENV === 'production') {
